@@ -1,0 +1,84 @@
+
+
+/*The head of your department wants lists of customers who prefer premium goods, 
+as well as a report on the average daily number of transactions for each week. 
+Hold on to your hats, it's a target audience study!
+
+Write a query to select product IDs (id_product) from the products_data_all table:
+
+of goods in the 'milk' category that cost more than $17
+of goods in the 'butter' category that cost more than $9
+Remember, the field names are:
+
+category — category
+price — price*/
+
+SELECT 
+    id_product
+FROM 
+    products_data_all
+WHERE 
+    (category = 'milk' AND price > 17)
+    OR (category = 'butter' AND price > 9);
+
+
+/* Write a query to select the unique identifiers (user_id) of customers who bought products (id_product) 
+from the 'milk' category that cost more than $17 or ones from the 'butter' category that cost more than $9. 
+Use the transactions table.*/
+
+
+SELECT 
+    DISTINCT(user_id) 
+FROM 
+	transactions
+WHERE 
+    id_product IN
+	(SELECT 
+	id_product 
+	FROM 
+	products_data_all
+	WHERE 
+	(category='milk' AND  price > 17) OR 
+	(category='butter' AND price > 9));
+
+
+/*Write a query to find the number of unique transactions (id_transaction) in the transactions table. Group the transaction totals by day, 
+truncating the date column to the day level. Name the resulting transaction column transactions_per_day and the one with the truncated dates trunc_date.
+You won't need to use subqueries here. */
+
+SELECT 
+    COUNT(DISTINCT id_transaction) AS transactions_per_day,
+    DATE_TRUNC('day', date) AS trunc_date
+FROM 
+    transactions
+GROUP BY 
+    trunc_date;
+
+/* Turn the query from our previous task into a FROM block subquery. Name the result SUBQ. 
+
+Meanwhile, in the outer query:
+
+Call the EXTRACT function to retrieve the number of the week from the trunc_date column of the SUBQ table. Name the resulting field week_number.
+Find the mean of the transactions_per_day column from the SUBQ table and save it in the variable avg_week_transaction.
+Group the data by week_number.
+The columns should appear in this order: week_number, avg_week_transaction. */
+
+SELECT 
+    EXTRACT(WEEK FROM trunc_date) AS week_number,
+    AVG(transactions_per_day) AS avg_week_transaction
+FROM 
+    (
+        SELECT 
+            COUNT(DISTINCT id_transaction) AS transactions_per_day,
+            DATE_TRUNC('day', date) AS trunc_date
+        FROM 
+            transactions
+        GROUP BY 
+            trunc_date
+    ) AS SUBQ
+GROUP BY 
+    week_number
+ORDER BY 
+    week_number;
+
+
